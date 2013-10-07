@@ -41,7 +41,7 @@ def refreshFileList( srmPath, tmpFile ):
 #     sys.stdout.flush()
 
     dump = open(tmpFile,'w')
-    srmls = subprocess.Popen(['srmls',srmPath],stdout=dump)
+    srmls = subprocess.Popen(['srmls',srmPath],stdout=dump, stderr=dump)
     srmls.wait()
     dump.close()
 #     print 'Done'
@@ -55,7 +55,7 @@ def performDelete( files, srmSite, logFile ):
     print 'Id \t Retry \t Size \t Path #'
     for file in toDelete:
         print file[2],'\t',file[3],'\t',file[1],'\t',file[0]
-    
+
     if query_yes_no('Do you want to proceed?','no'):
         log = open(logFile,'w')
         for file in toDelete:
@@ -95,7 +95,7 @@ def findDuplicates():
 
     if len(args)!=1:
         parser.error('Wrong number of arguments')
-    
+
     path = args[0]
     if path[0] is not '/':
         parser.error('Requires an absolute path: It must start with \'/\'')
@@ -107,13 +107,13 @@ def findDuplicates():
     tmpFile = os.path.basename(path)+'.'+opt.site+'.lst'
     logFile = os.path.basename(path)+'.'+opt.site+'.log'
     dcapFile = os.path.basename(path)+'.'+opt.site+'.dcap'
-    
+
     hline = '-'*80
     print hline
     print 'Processing:',os.path.basename(path)
     print 'Path:',rootpath+path
     print hline
-    
+
     if not os.path.exists(tmpFile) or opt.refresh:
         print 'Fetching the list of files to '+tmpFile+'...',
         sys.stdout.flush()
@@ -130,10 +130,10 @@ def findDuplicates():
         refreshFileList(rootpath+path,tmpFile)
         print 'done'
         out = open(tmpFile).read()
- 
+
 #     print 'Processing file list using file tag',fileTag
     lines = out.splitlines()
-    # remove the directory name 
+    # remove the directory name
     lines.pop(0)
 
     #initialize some variables
@@ -154,7 +154,7 @@ def findDuplicates():
         if res is None:
             continue
 
-        
+
         path = tokens[1]
         id = int(res.group(1))
         retry = int(res.group(2))
@@ -203,7 +203,7 @@ def findDuplicates():
             for fileTuple in fileArray:
                 # size, path, retry
                 print fileTuple[2],'\t',fileTuple[3],'\t',fileTuple[1],'\t',fileTuple[0]
-    
+
 
     if len(missingFiles) == 0:
         missStr = 'None'
@@ -215,7 +215,7 @@ def findDuplicates():
 
     print 'Missing files:',missStr
     print hline
-        
+
     if opt.tryDelete:
         filesToDelete = []
         nUnsafeDuplicates = 0
@@ -232,7 +232,7 @@ def findDuplicates():
 #                 for file in files:
 #                     print file[1],'\t',file[0],'\t',file[3]
 #                     nUnsafeDuplicates += 1
-            
+
             #if we are happy with the filesize
             dups = sorted(files, key = lambda file: file[1])
             # don't the one with the highest retry
@@ -264,7 +264,7 @@ def findDuplicates():
         log = open(logFile,'w')
         for file in duplicates:
             oldFile=srmSite+file
-            newFile=newPath+os.path.basename(file) 
+            newFile=newPath+os.path.basename(file)
             lcgcp = subprocess.Popen(['lcg-cp','-v',oldFile,newFile],stdout=log,stderr=log)
             lcgcp.wait()
             lcgdel = subprocess.Popen(['lcg-del','-l','-v',oldFile],stdout=log,stderr=log)
